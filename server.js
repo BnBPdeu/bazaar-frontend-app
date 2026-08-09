@@ -44,35 +44,33 @@ const server = createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "https://bazaar-admin-production.up.railway.app",
-      "https://bazaar-frontend-app-production.up.railway.app",
-      "http://localhost:3000",
-      "http://localhost:4000",
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:8080",
-      "http://localhost:8081",
-    ],
+    origin: (origin, callback) => {
+      const allowedOrigin = process.env.CORS_ORIGIN;
+      const isDevelopment = process.env.NODE_ENV;
+
+      if (!origin || origin === allowedOrigin || isDevelopment) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORs Policy."));
+      }
+    },
     methods: ["GET", "POST"],
   },
 });
 
-// ADD A COMMENT
-
 app.set("io", io);
 // cors options
 const corsOptions = {
-  origin: [
-    "https://bazaar-admin-production.up.railway.app",
-    "https://bazaar-frontend-app-production.up.railway.app",
-    "http://localhost:3000",
-    "http://localhost:4000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:8080",
-    "http://localhost:8081",
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigin = process.env.CORS_ORIGIN;
+    const isDevelopment = process.env.NODE_ENV;
+
+    if (!origin || origin === allowedOrigin || isDevelopment) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORs Policy."));
+    }
+  },
   credentials: true,
   methods: "GET, POST, DELETE, PATCH, HEAD, PUT, OPTIONS",
   allowedHeaders: [
@@ -170,7 +168,6 @@ io.on("connection", async (socket) => {
   });
 
   await emitLatestNews(io);
-
 });
 
 // Global cron job to update candles + send history
@@ -181,9 +178,8 @@ cron.schedule("*/8 * * * * *", async () => {
   if (isBreak) {
     console.log("⏸ Break active, skipping price simulation...");
     return;
-    
   }
- 
+
   // await simulateIPOPrices(io);
 
   if (trendState.active) {
