@@ -32,6 +32,8 @@ import { trendState } from "./src/utils/trendState.js";
 import trendRouter from "./src/routes/trend.router.js";
 import { simulateSectorTrend } from "./src/utils/simulateSectorTrend.js";
 import { emitLatestNews } from "./src/controllers/trading.controllers.js";
+import { sessionConfig } from "./src/config/session.js";
+import passport from "./src/config/passport-config.js";
 
 const app = express();
 dotenv.config({});
@@ -111,6 +113,24 @@ io.on("connection", async (socket) => {
 
   // connection for all breake and start game
   socket.emit("break_state", { isBreak });
+
+  try {
+    const shares = await Shares.find().sort({ shareName: 1 }).lean();
+
+    const snapshot = shares.map((share) => ({
+      shareId: share._id,
+      sharename: share.shareName,
+      price: share.price,
+      symbol: share.symbol,
+      Image: share.image,
+      lastHistory: share.history?.at(-1) || null,
+    }));
+
+    socket.emit("shareliveprice", snapshot);
+  } catch (error) {
+    console.error("Error sending initial share snapshot:", error);
+  }
+
   socket.on("toggle_break", () => {
     isBreak = !isBreak;
     io.emit("break_state", { isBreak }); // ✅ broadcast to everyone
@@ -223,6 +243,10 @@ cron.schedule("*/8 * * * * *", async () => {
 //     BACKEND API ROUTES     //
 //                            //
 ////////////////////////////////
+
+app.use(sessionConfig);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((req, res, next) => {
   req.io = io;

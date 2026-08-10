@@ -50,13 +50,34 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    displayName: {
+      type: String,
+      required: false,
+    },
     Email: {
       type: String,
       required: true,
     },
+    accessToken: {
+      type: String,
+      required: false,
+    },
+    profilePic: {
+      type: String,
+      required: false,
+    },
+    googleId: {
+      type: String,
+      required: false,
+    },
+    phone_number: {
+      type: String,
+      sparse: true,
+    },
+    dob: Date,
     Password: {
       type: String,
-      required: true,
+      required: false,
     },
     isAdmin: {
       type: Boolean,
@@ -82,7 +103,7 @@ const userSchema = new mongoose.Schema(
     trades: [tradeSchema],
     shortPositions: [ShortPositionSchema],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.pre("save", async function (next) {
@@ -91,6 +112,7 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+/******************** Generate Access Token ********************/
 userSchema.methods.generateAuthToken = async function () {
   try {
     return jwt.sign(
@@ -101,12 +123,23 @@ userSchema.methods.generateAuthToken = async function () {
       },
       process.env.JWT_SECRET_KEY,
       {
-        expiresIn: process.env.TOKEN_EXPIRED_TIME,
-      }
+        expiresIn: "15m",
+      },
     );
   } catch (error) {
     console.log(`${error}`);
   }
+};
+
+/******************** Generate Refresh Token ********************/
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    {
+      userId: this._id.toString(),
+    },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" },
+  ); // 7 days
 };
 
 userSchema.methods.comparePassword = async function (Password) {

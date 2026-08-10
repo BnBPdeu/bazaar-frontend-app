@@ -29,6 +29,7 @@ export const register = async (req, res) => {
       fullName,
       Email,
       Password,
+      isVerified: true,
     });
 
     if (!newuser) {
@@ -40,10 +41,10 @@ export const register = async (req, res) => {
       {
         to: Email,
         type: "welcome-email",
-      }
+      },
     );
 
-    console.log(response)
+    console.log(response);
 
     return res.status(200).json({ msg: "user created!!!", newuser });
   } catch (error) {
@@ -129,7 +130,7 @@ export const passwordOtp = async (req, res) => {
         to: Email,
         otp: otp,
         type: "otp-request",
-      }
+      },
     );
 
     console.log(response);
@@ -210,7 +211,7 @@ export const verifyEmail = async (req, res) => {
           isVerified: true,
           otp: null,
           OtpExpiry: null,
-        }
+        },
       );
 
       return res.status(200).json({
@@ -284,7 +285,7 @@ export const changeDetail = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password"); // hide password in response
 
     if (!updatedUser) {
