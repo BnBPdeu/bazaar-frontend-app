@@ -234,16 +234,6 @@ cron.schedule("*/8 * * * * *", async () => {
   }
 });
 
-// cron.schedule("*/5 * * * * *", async () => {
-//   await simulateIPOPrices(io);
-// });
-
-////////////////////////////////
-//                            //
-//     BACKEND API ROUTES     //
-//                            //
-////////////////////////////////
-
 app.use(sessionConfig);
 app.use(passport.initialize());
 app.use(passport.session());

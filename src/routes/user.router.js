@@ -54,6 +54,10 @@ userRouter.get(
 
       await userExists.save();
 
+      /**
+       * Re-change later
+       */
+
       res.cookie("authToken", refreshToken, {
         httpOnly: true,
         secure: isProd,
